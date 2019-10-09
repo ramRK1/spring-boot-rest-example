@@ -22,6 +22,43 @@ pipeline {
                 }
             }
         }
+        stage("add built number"){
+            steps{
+                script{
+                    sh """
+                        #!/bin/bash
+                        cd /var/lib/jenkins/workspace/build-deploy-pipeline/target/
+                        mv *.war spring-boot-rest-example-0.5.0-$BUILD_NUMBER.war
+                    """
+                }
+            }
+        }
+        stage("upload to S3"){
+            steps{
+                script{
+                    s3Upload(bucket: 'ram-ass-bucket', workingDir: 'target', includePathPattern: '**/*.war');
+                }
+            }
+        }
+        stage("change in ASG desired capacity"){
+            steps{
+                withAWS(region: 'us-east-1'){
+                    sh """
+                        aws autoscaling set-desired-capacity --auto-scaling-group-name ram-asg-spring-boot --desired-capacity 4
+                    """
+                }
+                script{
+                    sh """
+                        sleep 300
+                    """
+                }
+                withAWS(region: 'us-east-1'){
+                    sh """
+                        aws autoscaling set-desired-capacity --auto-scaling-group-name ram-asg-spring-boot --desired-capacity 2
+                    """
+                }
+            }
+        }
     }
 }    
 
