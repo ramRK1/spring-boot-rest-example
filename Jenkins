@@ -28,7 +28,7 @@ pipeline {
                     sh """
                         #!/bin/bash
                         cd /var/lib/jenkins/workspace/ram-test/target/
-                        mv *.war spring-boot-rest-example-0.5.0-$BUILD_NUMBER.war
+                        mv *.war spring-boot-rest-example-0.5.0-${BUILD_NUMBER}.war
                     """
                 }
             }
